@@ -1,20 +1,33 @@
-import { NavigationContainer } from "@react-navigation/native";
-import HomeScreen from "../screens/HomeScreen";
+import React from "react";
 import { createStackNavigator } from "@react-navigation/stack";
+import HomeScreen, { MarkerType } from "../screens/HomeScreen";
+import SearchMap from "../screens/SearchMap";
+import { ParamListBase } from "@react-navigation/native";
 
-const Stack = createStackNavigator();
+export type AppStackParamList = {
+  Home: undefined;
+  SearchMap: {
+    onMarkersUpdate: (newMarkers: MarkerType[]) => void;
+  };
+};
 
-const AppNavigator = () => {
+const Stack = createStackNavigator<AppStackParamList>();
+
+const AppNavigator: React.FC = () => {
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home">
-        <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{ headerShown: false }}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <Stack.Navigator>
+      <Stack.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{ title: "Accueil" }}
+      />
+      <Stack.Screen
+        name="SearchMap"
+        component={SearchMap}
+        options={{ title: "Rechercher un Trajet" }}
+      />
+    </Stack.Navigator>
   );
 };
+
 export default AppNavigator;
