@@ -88,8 +88,6 @@ const SearchMap: React.FC = () => {
 
       const data = await response.json();
 
-      console.log("Route Data:", data);
-
       if (data.routes && data.routes.length > 0) {
         const encodedGeometry = data.routes[0].geometry;
         const decodedCoordinates = polyline
@@ -228,16 +226,33 @@ const SearchMap: React.FC = () => {
           value={arrival}
           onChangeText={setArrival}
         />
-        <Button
-          title="Rechercher"
-          onPress={handleSearch}
-          style={{ backgroundColor: "blue", padding: 10, margin: 10 }}
-        />
-        <Button
-          title="Ma position"
-          onPress={handleMyPosition}
-          style={{ backgroundColor: "blue", padding: 10, margin: 10 }}
-        />
+        {distance !== null && price !== null ? (
+          <>
+            <Button
+              title="Choisir une autre direction"
+              onPress={() => setDistance(null)}
+              style={{ backgroundColor: "green", padding: 10, margin: 10 }}
+            />
+            <Button
+              title="Reserver"
+              onPress={handleMyPosition}
+              style={{ backgroundColor: "green", padding: 10, margin: 10 }}
+            />
+          </>
+        ) : (
+          <>
+            <Button
+              title="Rechercher"
+              onPress={handleSearch}
+              style={{ backgroundColor: "blue", padding: 10, margin: 10 }}
+            />
+            <Button
+              title="Ma position"
+              onPress={handleMyPosition}
+              style={{ backgroundColor: "blue", padding: 10, margin: 10 }}
+            />
+          </>
+        )}
         {distance !== null && price !== null && (
           <View style={styles.infoContainer}>
             <Text style={styles.infoText}>
