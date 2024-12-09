@@ -27,6 +27,10 @@ const SearchMap: React.FC = () => {
 
   const [departure, setDeparture] = useState("");
   const [arrival, setArrival] = useState("");
+  const [departureSuggestions, setDepartureSuggestions] = useState<string[]>(
+    []
+  );
+  const [arrivalSuggestions, setArrivalSuggestions] = useState<string[]>([]);
   const [markers, setMarkers] = useState<MarkerType[]>([]);
   const [loading, setLoading] = useState(false);
   const [distance, setDistance] = useState<number | null>(null);
@@ -101,6 +105,40 @@ const SearchMap: React.FC = () => {
     } catch (error) {
       console.error("Fetch Route Error:", error);
       Alert.alert("Erreur", "Impossible de tracer l'itinéraire.");
+    }
+  };
+
+  const fetchSuggestions = async (
+    query: string,
+    type: "departure" | "arrival"
+  ) => {
+    if (query.length < 3) {
+      if (type === "departure") setDepartureSuggestions([]);
+      if (type === "arrival") setArrivalSuggestions([]);
+      return;
+    }
+
+    try {
+      const antananarivoViewBox = "&viewbox=47.4,-18.8,47.6,-18.9&bounded=1";
+
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${query}&format=json&addressdetails=1&limit=5&countrycodes=MG${antananarivoViewBox}`
+      );
+      const data = await response.json();
+
+      const placeNames = data.map(
+        (place: { display_name: string }) => place.display_name
+      );
+
+      if (type === "departure") {
+        setDepartureSuggestions(placeNames);
+      } else if (type === "arrival") {
+        setArrivalSuggestions(placeNames);
+      }
+    } catch (error) {
+      console.error("Error fetching suggestions:", error);
+      if (type === "departure") setDepartureSuggestions([]);
+      if (type === "arrival") setArrivalSuggestions([]);
     }
   };
 
@@ -218,14 +256,55 @@ const SearchMap: React.FC = () => {
           style={styles.input}
           placeholder="Lieu de départ"
           value={departure}
-          onChangeText={setDeparture}
+          onChangeText={(text) => {
+            setDeparture(text);
+            fetchSuggestions(text, "departure");
+          }}
         />
+        {departureSuggestions.length > 0 && (
+          <View style={styles.suggestionsContainer}>
+            {departureSuggestions.map((suggestion, index) => (
+              <Text
+                key={index}
+                style={styles.suggestionItem}
+                onPress={() => {
+                  setDeparture(suggestion); // Met à jour l'input
+                  setDepartureSuggestions([]); // Cache les suggestions
+                }}
+              >
+                {suggestion}
+              </Text>
+            ))}
+          </View>
+        )}
+
+        {/* Input pour Lieu d'arrivée */}
         <TextInput
           style={styles.input}
           placeholder="Lieu d'arrivée"
           value={arrival}
-          onChangeText={setArrival}
+          onChangeText={(text) => {
+            setArrival(text);
+            fetchSuggestions(text, "arrival");
+          }}
         />
+        {arrivalSuggestions.length > 0 && (
+          <View style={styles.suggestionsContainer}>
+            {arrivalSuggestions.map((suggestion, index) => (
+              <Text
+                key={index}
+                style={styles.suggestionItem}
+                onPress={() => {
+                  setArrival(suggestion);
+                  setArrivalSuggestions([]);
+                }}
+              >
+                {suggestion}
+              </Text>
+            ))}
+          </View>
+        )}
+
         {distance !== null && price !== null ? (
           <>
             <Button
@@ -317,6 +396,19 @@ const styles = StyleSheet.create({
   },
   infoContainer: { padding: 10, backgroundColor: "#f9f9f9" },
   infoText: { fontSize: 16, fontWeight: "bold", marginBottom: 5 },
+  suggestionsContainer: {
+    backgroundColor: "#fff",
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 5,
+    maxHeight: 150,
+    marginTop: -5,
+  },
+  suggestionItem: {
+    padding: 10,
+    borderBottomColor: "#eee",
+    borderBottomWidth: 1,
+  },
 });
 
 export default SearchMap;
